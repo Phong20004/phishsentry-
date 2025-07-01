@@ -115,11 +115,6 @@ dmypy.json
 ehthumbs.db
 Thumbs.db
 
-# Large files (over 100MB)
-models/vectorizer.pkl
+# Large datasets (keep models, remove from ignore)
 data_and_apis/datasets/openphish.csv
 data_and_apis/datasets/legit.csv
-
-# Git LFS files
-*.pkl
-*.csv
