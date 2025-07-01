@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>AI-Powered URL Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card-result {
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            background: #f9f9f9;
+            padding: 24px;
+            height: 100%;
+        }
+        .status-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin: 0 auto;
+        }
+        .status-icon img {
+            width: 40px;
+        }
+        .score-box {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+        .score-safe {
+            background-color: #d4f7dc;
+            color: #106b21;
+        }
+        .score-warning {
+            background-color: #fff4cc;
+            color: #8a6d00;
+        }
+        .score-danger {
+            background-color: #fddede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container py-5">
+    <h2 class="mb-4 text-center"><strong>AI-Powered URL Analyzer</strong></h2>
+    <p class="text-center text-muted">
+        Nhận diện web lừa đảo bằng AI và đánh giá từ các nguồn bảo mật phổ biến.<br>
+        <small><strong>Lưu ý:</strong> Kết quả chỉ mang tính tham khảo từ AI & dữ liệu công khai.</small>
+    </p>
+
+    <form method="POST" class="mb-4 d-flex justify-content-center">
+        <input type="text" name="url" class="form-control w-50 me-2"
+               placeholder="Nhập URL (vd: fb.com)" value="{{ url }}" required>
+        <button type="submit" class="btn btn-success">Phân tích</button>
+    </form>
+
+    {% if prediction %}
+    <div class="row">
+        <!-- Phân tích AI -->
+        <div class="col-md-6 mb-4">
+            <div class="card-result text-center d-flex flex-column justify-content-center">
+                <div class="status-icon mb-3">
+                    {% if score >= 7 %}
+                        <img src="{{ url_for('static', filename='icons/warn_red.png') }}" alt="danger">
+                    {% elif score >= 4 %}
+                        <img src="{{ url_for('static', filename='icons/warn_yellow.png') }}" alt="warning">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='icons/check_green.png') }}" alt="safe">
+                    {% endif %}
+                </div>
+                <h5>
+                    {% if score >= 7 %}
+                        Có vẻ <span class="text-danger">nguy hiểm</span>
+                    {% elif score >= 4 %}
+                        Có vẻ <span class="text-warning">nghi ngờ</span>
+                    {% else %}
+                        Có vẻ <span class="text-success">an toàn</span>
+                    {% endif %}
+                </h5>
+                <hr>
+                <p><strong>Rủi ro:</strong>
+                    <span class="score-box
+                        {% if score >= 7 %}score-danger
+                        {% elif score >= 4 %}score-warning
+                        {% else %}score-safe
+                        {% endif %}">
+                        {{ score }}/10
+                    </span>
+                </p>
+                <p><strong>Phát hiện:</strong> Trang web được AI đánh giá là {{ prediction | lower }}</p>
+                <p><small>Kiểm tra lúc: {{ now() }}</small></p>
+            </div>
+        </div>
+
+        <!-- Báo cáo -->
+        <div class="col-md-6 mb-4">
+            <div class="card-result">
+                <h5 class="mb-3">
+                    <img src="{{ url_for('static', filename='icons/flag.png') }}" alt="flag"
+                         style="width:18px; margin-right:6px;">
+                    <strong>Báo cáo từ các nguồn</strong>
+                </h5>
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nguồn</th>
+                            <th>Kết quả</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>AI dự đoán</td><td>{% if ai_score == 1 %}<span class="text-danger">Nguy hiểm</span>{% else %}<span class="text-success">Không nguy hiểm</span>{% endif %}</td></tr>
+                        <tr><td>Google Safe Browsing</td><td>{% if api.safe_browsing %}<span class="text-danger">Phát hiện mối đe dọa</span>{% else %}<span class="text-success">Không phát hiện</span>{% endif %}</td></tr>
+                        <tr><td>Google Web Risk</td><td>{% if api.web_risk > 0 %}<span class="text-danger">{{ api.web_risk }} loại đe dọa</span>{% else %}<span class="text-success">Không phát hiện</span>{% endif %}</td></tr>
+                        <tr><td>VirusTotal</td><td>{% if api.virustotal_malicious > 0 %}<span class="text-danger">{{ api.virustotal_malicious }} engine cảnh báo</span>{% else %}<span class="text-success">Không cảnh báo</span>{% endif %}</td></tr>
+                        <tr><td>Tên miền</td><td>{% if domain_ok %}<span class="text-success">Tồn tại</span>{% else %}<span class="text-warning">Không phân giải được IP</span>{% endif %}</td></tr>
+                        <tr><td>Quốc gia IP</td><td>{{ api.ipinfo.country or 'Không xác định' }}</td></tr>
+                        <tr><td>Tổ chức</td><td>{{ api.ipinfo.org or 'Không xác định' }}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Ảnh chụp màn hình -->
+        <div class="col-md-12 mb-4">
+            <div class="card-result text-center">
+                <h5 class="mb-3 d-flex align-items-center justify-content-center">
+                    <img src="{{ url_for('static', filename='icons/pic.png') }}" alt="pic"
+                         style="width:20px; height:20px; margin-right:8px;">
+                    <strong class="m-0">Ảnh chụp màn hình</strong>
+                </h5>
+                {% if domain_ok %}
+                    <img src="https://api.screenshotmachine.com/?key=f778c4&url={{ url }}&dimension=1024x768"
+                         alt="Screenshot" class="img-fluid rounded border shadow-sm">
+                {% else %}
+                    <div class="text-warning mt-2">
+                        Không thể hiển thị ảnh chụp vì <strong>tên miền không tồn tại</strong>.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>
