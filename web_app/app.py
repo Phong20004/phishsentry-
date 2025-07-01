@@ -33,9 +33,9 @@ except Exception as e:
 
 # API keys
 API_KEYS = {
-    'google': 'AIzaSyCNfH__BftEQ-7hKmRY30vaMr8A8txTKb0',
-    'virustotal': '6494720e47f1c51fc6051a033a970b8f7dddd7a1b6f34a9fa68f2bbddb8cec41',
-    'ipinfo': '7a239af312eefc'
+    'google': '',
+    'virustotal': '',
+    'ipinfo': ''
 }
 
 # Kiểm tra kết nối API
