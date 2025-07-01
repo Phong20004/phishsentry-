@@ -1,0 +1,42 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Đánh Giá URL</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container py-5">
+    <h2 class="mb-4">🔍 Hệ thống AI đánh giá URL nguy hiểm</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <input type="text" name="url" class="form-control" placeholder="Nhập URL cần kiểm tra..." required>
+        </div>
+        <button type="submit" class="btn btn-primary">Phân tích</button>
+    </form>
+
+    {% if prediction %}
+    <div class="mt-4 p-4 border rounded bg-white">
+        <h4>Kết quả cho: <code>{{ url }}</code></h4>
+        <h5 class="mt-2">📊 Đánh giá: <strong>{{ prediction }}</strong></h5>
+        {% if score is not none %}
+        <p>🎯 Điểm nguy hiểm: <strong>{{ score }}/10</strong></p>
+        {% endif %}
+        <p>🌐 Trạng thái tên miền: <strong>{{ '✅ Tồn tại' if domain_ok else '❌ Không tồn tại' }}</strong></p>
+
+        {% if api and 'ipinfo' in api %}
+        <h6 class="mt-4">🔎 Chi tiết từ các nguồn:</h6>
+        <ul>
+            <li>Google Safe Browsing: {{ '✅ Phát hiện' if api.safe_browsing else '⭕ Không phát hiện' }}</li>
+            <li>Google Web Risk: {{ api.web_risk }} mối đe dọa</li>
+            <li>VirusTotal (malicious): {{ api.virustotal_malicious }}</li>
+            <li>IP Quốc gia: {{ api.ipinfo.country if api.ipinfo.country else 'Không xác định' }}</li>
+            <li>Tổ chức: {{ api.ipinfo.org if api.ipinfo.org else 'Không xác định' }}</li>
+        </ul>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>
